@@ -1,0 +1,810 @@
+######### FAXINAS PARA DEIXAR SUA CASA APR1esentavel!! ######################
+
+######### SEPARAÇÂO DE TEXTO ######################
+def separar_texto(texto, separador):
+    lista = []
+    pedaco = ""
+    for letra in texto:
+        if letra == separador:
+            lista.append(pedaco)
+            pedaco = ""
+        else:
+            pedaco += letra
+    lista.append(pedaco)
+    return lista
+
+
+######### tira espaco e enter do comeco e do fim ######################
+def tirar_espacos(texto):
+    comeco = 0
+    fim = len(texto) - 1
+    while comeco <= fim and (texto[comeco] == " " or texto[comeco] == "\n" or texto[comeco] == "\r" or texto[comeco] == "\t"):
+        comeco += 1
+    while fim >= comeco and (texto[fim] == " " or texto[fim] == "\n" or texto[fim] == "\r" or texto[fim] == "\t"):
+        fim -= 1
+    novo = ""
+    for i in range(comeco, fim + 1):
+        novo += texto[i]
+    return novo
+
+def somente_digitos(texto):
+    if len(texto) == 0:
+        return False
+    for letra in texto:
+        if letra < "0" or letra > "9":
+            return False
+    return True
+
+
+######### DATA ######################
+
+def dias_no_mes(mes, ano):
+    if mes == 2:
+        if ano_bissexto(ano) == True:
+            return 29
+        return 28
+    if mes == 4 or mes == 6 or mes == 9 or mes == 11:
+        return 30
+    return 31
+
+
+def data_valida(texto):
+    partes = separar_texto(texto, "/")
+    if len(partes) != 3:
+        return False
+    if len(partes[0]) != 2 or len(partes[1]) != 2 or len(partes[2]) != 4:
+        return False
+    if somente_digitos(partes[0]) == False or somente_digitos(partes[1]) == False or somente_digitos(partes[2]) == False:
+        return False
+    dia = int(partes[0])
+    mes = int(partes[1])
+    ano = int(partes[2])
+    if mes < 1 or mes > 12:
+        return False
+    if dia < 1 or dia > dias_no_mes(mes, ano):
+        return False
+    return True
+
+
+######### troca pra "aaaammdd" pra conseguir comparar data ######################
+def data_para_numero(texto):
+    partes = separar_texto(texto, "/")
+    return int(partes[2]) * 10000 + int(partes[1]) * 100 + int(partes[0])
+
+
+#### TIVE QUE FAZER UMA FUNÇÂO PRA ANO BISSEXTO KKKKK #################
+def ano_bissexto(ano):
+    if ano % 400 == 0:
+        return True
+    if ano % 100 == 0:
+        return False
+    if ano % 4 == 0:
+        return True
+    return False
+
+######### ENTRADA ######################
+def ler_texto(mensagem):
+    texto = ""
+    while texto == "":
+        texto = tirar_espacos(input(mensagem))
+        if texto == "":
+            print("Nao pode ficar vazio!")
+######### troca o | por / porque usei pra separar no arquivo ######################
+    novo = ""
+    for letra in texto:
+        if letra == "|":
+            novo += "/"
+        else:
+            novo += letra
+    return novo
+
+
+def ler_cpf(mensagem):
+    cpf = ""
+    while len(cpf) != 11 or somente_digitos(cpf) == False:
+        cpf = tirar_espacos(input(mensagem))
+        if len(cpf) != 11 or somente_digitos(cpf) == False:
+            print("CPF invalido! Digite 11 numeros, sem pontos nem traco.")
+    return cpf
+
+
+def ler_cep(mensagem):
+    cep = ""
+    while len(cep) != 8 or somente_digitos(cep) == False:
+        cep = tirar_espacos(input(mensagem))
+        if len(cep) != 8 or somente_digitos(cep) == False:
+            print("CEP invalido! Digite 8 numeros, sem traco.")
+    return cep
+
+
+def ler_data(mensagem):
+    data = ""
+    while data_valida(data) == False:
+        data = tirar_espacos(input(mensagem))
+        if data_valida(data) == False:
+            print("Data invalida! Use o formato dd/mm/aaaa.")
+    return data
+
+
+def ler_sexo(mensagem):
+    sexo = ""
+    while sexo != "M" and sexo != "F":
+        sexo = tirar_espacos(input(mensagem))
+        if sexo == "m":
+            sexo = "M"
+        if sexo == "f":
+            sexo = "F"
+        if sexo != "M" and sexo != "F":
+            print("Digite M ou F!")
+    return sexo
+
+
+def ler_valor(mensagem):
+    valido = False
+    while valido == False:
+        texto = tirar_espacos(input(mensagem))
+######### troca virgula por ponto ######################
+        valor = ""
+        for letra in texto:
+            if letra == ",":
+                valor += "."
+            else:
+                valor += letra
+        try:
+            numero = float(valor)
+            if numero >= 0:
+                valido = True
+            else:
+                print("O valor nao pode ser negativo!")
+        except ValueError:
+            print("Valor invalido! Digite so numeros, exemplo 150.50")
+    return valor
+
+
+def confirmar(mensagem):
+    resposta = ""
+    while resposta != "S" and resposta != "N":
+        resposta = tirar_espacos(input(mensagem))
+        if resposta == "s":
+            resposta = "S"
+        if resposta == "n":
+            resposta = "N"
+        if resposta != "S" and resposta != "N":
+            print("Digite S ou N!")
+    if resposta == "S":
+        return True
+    else:
+        return False
+
+
+######### ARQUIVOS ######################
+
+######### LEITURA DO ARQUIVO ######################
+def ler_arquivo(nome_arquivo):
+    linhas_do_arquivo = []
+    try:
+        arquivo = open(nome_arquivo, "r")
+    except FileNotFoundError:
+        return linhas_do_arquivo
+    for linha in arquivo:
+        linha = tirar_espacos(linha)
+        if linha != "":
+            linhas_do_arquivo.append(separar_texto(linha, "|"))
+    arquivo.close()
+    return linhas_do_arquivo
+
+
+def carregar_faxineiros():
+    faxineiros = {}
+    for campos in ler_arquivo("faxineiros.txt"):
+        if len(campos) == 6:
+            faxineiros[campos[0]] = [campos[1], campos[2], campos[3], campos[4], campos[5]]
+    return faxineiros
+
+
+def carregar_clientes():
+    clientes = {}
+    for campos in ler_arquivo("clientes.txt"):
+        if len(campos) == 8:
+            clientes[campos[0]] = [campos[1], campos[2], campos[3], campos[4], campos[5], campos[6], campos[7]]
+    return clientes
+
+
+def carregar_servicos():
+    servicos = {}
+    for campos in ler_arquivo("servicos.txt"):
+        if len(campos) == 4:
+            chave = campos[0] + "|" + campos[1] + "|" + campos[2]
+            servicos[chave] = [campos[0], campos[1], campos[2], campos[3]]
+    return servicos
+
+############# GRAVAÇÃO ################
+def gravar_faxineiros(faxineiros):
+    arquivo = open("faxineiros.txt", "w")
+    for cpf in faxineiros:
+        d = faxineiros[cpf]
+        arquivo.write(cpf + "|" + d[0] + "|" + d[1] + "|" + d[2] + "|" + d[3] + "|" + d[4] + "\n")
+    arquivo.close()
+
+
+def gravar_clientes(clientes):
+    arquivo = open("clientes.txt", "w")
+    for cpf in clientes:
+        d = clientes[cpf]
+        arquivo.write(cpf + "|" + d[0] + "|" + d[1] + "|" + d[2] + "|" + d[3] + "|" + d[4] + "|" + d[5] + "|" + d[6] + "\n")
+    arquivo.close()
+
+
+def gravar_servicos(servicos):
+    arquivo = open("servicos.txt", "w")
+    for chave in servicos:
+        d = servicos[chave]
+        arquivo.write(d[0] + "|" + d[1] + "|" + d[2] + "|" + d[3] + "\n")
+    arquivo.close()
+
+
+def gravar_relatorio(nome_arquivo, linhas):
+    arquivo = open(nome_arquivo, "w")
+    print("")
+    for linha in linhas:
+        print(linha)
+        arquivo.write(linha + "\n")
+    arquivo.close()
+    print("")
+    print("Relatorio salvo no arquivo " + nome_arquivo)
+
+
+######### PRINTAR ######################
+def mostrar_faxineiro(cpf, dados):
+    print("  CPF: " + cpf)
+    print("  RG: " + dados[0])
+    print("  Nome: " + dados[1])
+    print("  Sexo: " + dados[2])
+    print("  Data de nascimento: " + dados[3])
+    print("  Telefones: " + dados[4])
+
+
+def mostrar_cliente(cpf, dados):
+    print("  CPF: " + cpf)
+    print("  Nome: " + dados[0])
+    print("  Data de nascimento: " + dados[1])
+    print("  Endereco: " + dados[2])
+    print("  CEP: " + dados[3])
+    print("  Cidade: " + dados[4])
+    print("  E-mails: " + dados[5])
+    print("  Telefones: " + dados[6])
+
+
+def mostrar_servico(dados):
+    print("  CPF do faxineiro: " + dados[0])
+    print("  CPF do cliente: " + dados[1])
+    print("  Data: " + dados[2])
+    print("  Valor: R$ " + dados[3])
+
+
+######### FAXINEIROS ######################
+
+######## LISTAGEM COMPLETA #####################
+def listar_todos_faxineiros(faxineiros):
+    print("")
+    print("Lista de faxineiros")
+    if len(faxineiros) == 0:
+        print("Nenhum faxineiro cadastrado.")
+    contador = 1
+    for cpf in faxineiros:
+        print("")
+        print("Faxineiro " + str(contador))
+        mostrar_faxineiro(cpf, faxineiros[cpf])
+        contador += 1
+
+######### LISTAGEM ÚNICA ######################
+def listar_um_faxineiro(faxineiros):
+    print("")
+    print("Procurar faxineiro")
+    cpf = ler_cpf("CPF do faxineiro: ")
+    if cpf in faxineiros:
+        mostrar_faxineiro(cpf, faxineiros[cpf])
+    else:
+        print("Faxineiro nao encontrado.")
+
+########### INCLUSÃO DE FAXINEIRO ######################
+def incluir_faxineiro(faxineiros):
+    print("")
+    print("Incluir faxineiro")
+    cpf = ler_cpf("CPF: ")
+    if cpf in faxineiros:
+        print("Ja existe um faxineiro com esse CPF!")
+    else:
+        rg = ler_texto("RG: ")
+        nome = ler_texto("Nome: ")
+        sexo = ler_sexo("Sexo (M ou F): ")
+        data_nascimento = ler_data("Data de nascimento (dd/mm/aaaa): ")
+        telefones = ler_texto("Telefones (separe por ;): ")
+        faxineiros[cpf] = [rg, nome, sexo, data_nascimento, telefones]
+        gravar_faxineiros(faxineiros)
+        print("Faxineiro incluido com sucesso!")
+
+###### ALTERAÇÃO DE FAXINEIRO ######################
+def alterar_faxineiro(faxineiros):
+    print("")
+    print("Alterar faxineiro")
+    cpf = ler_cpf("CPF do faxineiro: ")
+    if cpf in faxineiros:
+        print("Dados atuais:")
+        mostrar_faxineiro(cpf, faxineiros[cpf])
+        print("")
+        print("O CPF nao pode ser alterado. Digite os novos dados:")
+        rg = ler_texto("RG: ")
+        nome = ler_texto("Nome: ")
+        sexo = ler_sexo("Sexo (M ou F): ")
+        data_nascimento = ler_data("Data de nascimento (dd/mm/aaaa): ")
+        telefones = ler_texto("Telefones (separe por ;): ")
+        novos_dados = [rg, nome, sexo, data_nascimento, telefones]
+        print("")
+        print("Dados novos:")
+        mostrar_faxineiro(cpf, novos_dados)
+        if confirmar("Confirma a alteracao? (S/N): ") == True:
+            faxineiros[cpf] = novos_dados
+            gravar_faxineiros(faxineiros)
+            print("Faxineiro alterado com sucesso!")
+        else:
+            print("Alteracao cancelada.")
+    else:
+        print("Faxineiro nao encontrado.")
+
+########## EXCLUSÃO DE FAXINEIRO ######################
+def excluir_faxineiro(faxineiros, servicos):
+    print("")
+    print("Excluir faxineiro")
+    cpf = ler_cpf("CPF do faxineiro: ")
+    if cpf in faxineiros:
+        mostrar_faxineiro(cpf, faxineiros[cpf])
+        tem_servico = False
+        for chave in servicos:
+            if servicos[chave][0] == cpf:
+                tem_servico = True
+        if tem_servico == True:
+            print("")
+            print("Nao da pra excluir, esse faxineiro tem servicos cadastrados!")
+        else:
+            if confirmar("Confirma a exclusao? (S/N): ") == True:
+                del faxineiros[cpf]
+                gravar_faxineiros(faxineiros)
+                print("Faxineiro excluido com sucesso!")
+            else:
+                print("Exclusao cancelada.")
+    else:
+        print("Faxineiro nao encontrado.")
+
+####### SUBMENU FAXINEIROS ######################
+def submenu_faxineiros(faxineiros, servicos):
+    opcao = ""
+    while opcao != "6":
+        print("")
+        print("SUBMENU DE FAXINEIROS")
+        print("1. Listar todos")
+        print("2. Listar um")
+        print("3. Incluir")
+        print("4. Alterar")
+        print("5. Excluir")
+        print("6. Voltar")
+        opcao = tirar_espacos(input("Opcao: "))
+        if opcao == "1":
+            listar_todos_faxineiros(faxineiros)
+        elif opcao == "2":
+            listar_um_faxineiro(faxineiros)
+        elif opcao == "3":
+            incluir_faxineiro(faxineiros)
+        elif opcao == "4":
+            alterar_faxineiro(faxineiros)
+        elif opcao == "5":
+            excluir_faxineiro(faxineiros, servicos)
+        elif opcao != "6":
+            print("Opcao invalida!")
+
+
+######### CLIENTES ######################
+
+##### LISTAGEM COMPLETA ########
+def listar_todos_clientes(clientes):
+    print("")
+    print("Lista de clientes")
+    if len(clientes) == 0:
+        print("Nenhum cliente cadastrado.")
+    contador = 1
+    for cpf in clientes:
+        print("")
+        print("Cliente " + str(contador))
+        mostrar_cliente(cpf, clientes[cpf])
+        contador += 1
+
+#### LISTAGEM ÚNICA ######################
+def listar_um_cliente(clientes):
+    print("")
+    print("Procurar cliente")
+    cpf = ler_cpf("CPF do cliente: ")
+    if cpf in clientes:
+        mostrar_cliente(cpf, clientes[cpf])
+    else:
+        print("Cliente nao encontrado.")
+
+######### INCLUSÃO DE CLIENTE ###################
+def incluir_cliente(clientes):
+    print("")
+    print("Incluir cliente")
+    cpf = ler_cpf("CPF: ")
+    if cpf in clientes:
+        print("Ja existe um cliente com esse CPF!")
+    else:
+        nome = ler_texto("Nome: ")
+        data_nascimento = ler_data("Data de nascimento (dd/mm/aaaa): ")
+        endereco = ler_texto("Endereco: ")
+        cep = ler_cep("CEP (so numeros): ")
+        cidade = ler_texto("Cidade: ")
+        emails = ler_texto("E-mails (separe por ;): ")
+        telefones = ler_texto("Telefones (separe por ;): ")
+        clientes[cpf] = [nome, data_nascimento, endereco, cep, cidade, emails, telefones]
+        gravar_clientes(clientes)
+        print("Cliente incluido com sucesso!")
+
+####### ALTERAÇÃO DE CLIENTE ######################
+def alterar_cliente(clientes):
+    print("")
+    print("Alterar cliente")
+    cpf = ler_cpf("CPF do cliente: ")
+    if cpf in clientes:
+        print("Dados atuais:")
+        mostrar_cliente(cpf, clientes[cpf])
+        print("")
+        print("O CPF nao pode ser alterado. Digite os novos dados:")
+        nome = ler_texto("Nome: ")
+        data_nascimento = ler_data("Data de nascimento (dd/mm/aaaa): ")
+        endereco = ler_texto("Endereco: ")
+        cep = ler_cep("CEP (so numeros): ")
+        cidade = ler_texto("Cidade: ")
+        emails = ler_texto("E-mails (separe por ;): ")
+        telefones = ler_texto("Telefones (separe por ;): ")
+        novos_dados = [nome, data_nascimento, endereco, cep, cidade, emails, telefones]
+        print("")
+        print("Dados novos:")
+        mostrar_cliente(cpf, novos_dados)
+        if confirmar("Confirma a alteracao? (S/N): ") == True:
+            clientes[cpf] = novos_dados
+            gravar_clientes(clientes)
+            print("Cliente alterado com sucesso!")
+        else:
+            print("Alteracao cancelada.")
+    else:
+        print("Cliente nao encontrado.")
+
+######## EXCLUSÂO DE CLIENTE #######################
+def excluir_cliente(clientes, servicos):
+    print("")
+    print("Excluir cliente")
+    cpf = ler_cpf("CPF do cliente: ")
+    if cpf in clientes:
+        mostrar_cliente(cpf, clientes[cpf])
+        tem_servico = False
+        for chave in servicos:
+            if servicos[chave][1] == cpf:
+                tem_servico = True
+        if tem_servico == True:
+            print("")
+            print("Nao da pra excluir, esse cliente tem servicos cadastrados!")
+        else:
+            if confirmar("Confirma a exclusao? (S/N): ") == True:
+                del clientes[cpf]
+                gravar_clientes(clientes)
+                print("Cliente excluido com sucesso!")
+            else:
+                print("Exclusao cancelada.")
+    else:
+        print("Cliente nao encontrado.")
+
+###### SUBMENU CLIENTES ######################
+def submenu_clientes(clientes, servicos):
+    opcao = ""
+    while opcao != "6":
+        print("")
+        print("SUBMENU DE CLIENTES")
+        print("1. Listar todos")
+        print("2. Listar um")
+        print("3. Incluir")
+        print("4. Alterar")
+        print("5. Excluir")
+        print("6. Voltar")
+        opcao = tirar_espacos(input("Opcao: "))
+        if opcao == "1":
+            listar_todos_clientes(clientes)
+        elif opcao == "2":
+            listar_um_cliente(clientes)
+        elif opcao == "3":
+            incluir_cliente(clientes)
+        elif opcao == "4":
+            alterar_cliente(clientes)
+        elif opcao == "5":
+            excluir_cliente(clientes, servicos)
+        elif opcao != "6":
+            print("Opcao invalida!")
+
+
+######### SERVICOS ######################
+
+####### LISTAGEM COMPLETA ######################
+def listar_todos_servicos(servicos):
+    print("")
+    print("Lista de servicos")
+    if len(servicos) == 0:
+        print("Nenhum servico cadastrado.")
+    contador = 1
+    for chave in servicos:
+        print("")
+        print("Servico " + str(contador))
+        mostrar_servico(servicos[chave])
+        contador += 1
+
+####### LISTAGEM ÚNICA ##########
+def listar_um_servico(servicos):
+    print("")
+    print("Procurar servico")
+    cpf_faxineiro = ler_cpf("CPF do faxineiro: ")
+    cpf_cliente = ler_cpf("CPF do cliente: ")
+    data = ler_data("Data do servico (dd/mm/aaaa): ")
+    chave = cpf_faxineiro + "|" + cpf_cliente + "|" + data
+    if chave in servicos:
+        mostrar_servico(servicos[chave])
+    else:
+        print("Servico nao encontrado.")
+
+########## INCLUSÃO DE SERVIÇO ######################
+def incluir_servico(servicos, faxineiros, clientes):
+    print("")
+    print("Incluir servico")
+    cpf_faxineiro = ler_cpf("CPF do faxineiro: ")
+    if cpf_faxineiro not in faxineiros:
+        print("Esse faxineiro nao esta cadastrado!")
+    else:
+        cpf_cliente = ler_cpf("CPF do cliente: ")
+        if cpf_cliente not in clientes:
+            print("Esse cliente nao esta cadastrado!")
+        else:
+            data = ler_data("Data do servico (dd/mm/aaaa): ")
+            chave = cpf_faxineiro + "|" + cpf_cliente + "|" + data
+            if chave in servicos:
+                print("Ja existe esse servico cadastrado!")
+            else:
+                valor = ler_valor("Valor (R$): ")
+                servicos[chave] = [cpf_faxineiro, cpf_cliente, data, valor]
+                gravar_servicos(servicos)
+                print("Servico incluido com sucesso!")
+
+##### ALTERAÇO DE SERVIÇO ######################
+def alterar_servico(servicos):
+    print("")
+    print("Alterar servico")
+    cpf_faxineiro = ler_cpf("CPF do faxineiro: ")
+    cpf_cliente = ler_cpf("CPF do cliente: ")
+    data = ler_data("Data do servico (dd/mm/aaaa): ")
+    chave = cpf_faxineiro + "|" + cpf_cliente + "|" + data
+    if chave in servicos:
+        print("Dados atuais:")
+        mostrar_servico(servicos[chave])
+        print("")
+        print("So o valor pode ser alterado (o resto faz parte da chave).")
+        novo_valor = ler_valor("Novo valor (R$): ")
+        novos_dados = [cpf_faxineiro, cpf_cliente, data, novo_valor]
+        print("")
+        print("Dados novos:")
+        mostrar_servico(novos_dados)
+        if confirmar("Confirma a alteracao? (S/N): ") == True:
+            servicos[chave] = novos_dados
+            gravar_servicos(servicos)
+            print("Servico alterado com sucesso!")
+        else:
+            print("Alteracao cancelada.")
+    else:
+        print("Servico nao encontrado.")
+
+####### EXCLUSÃO DE SERVIÇO ######################
+def excluir_servico(servicos):
+    print("")
+    print("Excluir servico")
+    cpf_faxineiro = ler_cpf("CPF do faxineiro: ")
+    cpf_cliente = ler_cpf("CPF do cliente: ")
+    data = ler_data("Data do servico (dd/mm/aaaa): ")
+    chave = cpf_faxineiro + "|" + cpf_cliente + "|" + data
+    if chave in servicos:
+        mostrar_servico(servicos[chave])
+        if confirmar("Confirma a exclusao? (S/N): ") == True:
+            del servicos[chave]
+            gravar_servicos(servicos)
+            print("Servico excluido com sucesso!")
+        else:
+            print("Exclusao cancelada.")
+    else:
+        print("Servico nao encontrado.")
+
+#### SUBMENU DE SERVICOS ######################
+def submenu_servicos(servicos, faxineiros, clientes):
+    opcao = ""
+    while opcao != "6":
+        print("")
+        print("SUBMENU DE SERVICOS")
+        print("1. Listar todos")
+        print("2. Listar um")
+        print("3. Incluir")
+        print("4. Alterar")
+        print("5. Excluir")
+        print("6. Voltar")
+        opcao = tirar_espacos(input("Opcao: "))
+        if opcao == "1":
+            listar_todos_servicos(servicos)
+        elif opcao == "2":
+            listar_um_servico(servicos)
+        elif opcao == "3":
+            incluir_servico(servicos, faxineiros, clientes)
+        elif opcao == "4":
+            alterar_servico(servicos)
+        elif opcao == "5":
+            excluir_servico(servicos)
+        elif opcao != "6":
+            print("Opcao invalida!")
+
+
+######### RELATORIOS ######################
+######### clientes de um faxineiro entre duas datas ######################
+def relatorio_a(faxineiros, clientes, servicos):
+    print("")
+    print("Relatorio A: clientes de um faxineiro entre duas datas")
+    cpf_faxineiro = ler_cpf("CPF do faxineiro: ")
+    if cpf_faxineiro not in faxineiros:
+        print("Faxineiro nao encontrado.")
+    else:
+        data_inicial = ler_data("Data inicial (dd/mm/aaaa): ")
+        data_final = ler_data("Data final (dd/mm/aaaa): ")
+        if data_para_numero(data_inicial) > data_para_numero(data_final):
+            print("A data inicial nao pode ser maior que a data final!")
+        else:
+            linhas = []
+            linhas.append("RELATORIO A - Clientes atendidos pelo faxineiro " + faxineiros[cpf_faxineiro][1])
+            linhas.append("CPF do faxineiro: " + cpf_faxineiro)
+            linhas.append("Periodo: " + data_inicial + " ate " + data_final)
+            linhas.append("------------------------------------------------------------")
+            cpfs_ja_mostrados = []
+            for chave in servicos:
+                servico = servicos[chave]
+                if servico[0] == cpf_faxineiro:
+                    numero_data = data_para_numero(servico[2])
+                    if numero_data >= data_para_numero(data_inicial) and numero_data <= data_para_numero(data_final):
+                        cpf_cliente = servico[1]
+                        ######### so mostra o cliente uma vez mesmo se ele contratou varias vezes ######################
+                        if cpf_cliente not in cpfs_ja_mostrados:
+                            cpfs_ja_mostrados.append(cpf_cliente)
+                            if cpf_cliente in clientes:
+                                linhas.append("Nome: " + clientes[cpf_cliente][0])
+                                linhas.append("  E-mails: " + clientes[cpf_cliente][5])
+                                linhas.append("  Telefones: " + clientes[cpf_cliente][6])
+                            else:
+                                linhas.append("Cliente CPF " + cpf_cliente + " (nao encontrado)")
+                            linhas.append("")
+            if len(cpfs_ja_mostrados) == 0:
+                linhas.append("Nenhum cliente atendido nesse periodo.")
+            gravar_relatorio("relatorio_a.txt", linhas)
+
+
+######### servicos de uma data ######################
+def relatorio_b(faxineiros, clientes, servicos):
+    print("")
+    print("Relatorio B: servicos de uma data")
+    data = ler_data("Data (dd/mm/aaaa): ")
+    linhas = []
+    linhas.append("RELATORIO B - Servicos do dia " + data)
+    linhas.append("------------------------------------------------------------")
+    quantidade = 0
+    for chave in servicos:
+        servico = servicos[chave]
+        if servico[2] == data:
+            nome_faxineiro = "(nao encontrado)"
+            if servico[0] in faxineiros:
+                nome_faxineiro = faxineiros[servico[0]][1]
+            nome_cliente = "(nao encontrado)"
+            if servico[1] in clientes:
+                nome_cliente = clientes[servico[1]][0]
+            linhas.append("Data: " + servico[2] + "   Valor: R$ " + servico[3])
+            linhas.append("  Faxineiro: " + nome_faxineiro + " (CPF " + servico[0] + ")")
+            linhas.append("  Cliente: " + nome_cliente + " (CPF " + servico[1] + ")")
+            linhas.append("")
+            quantidade += 1
+    if quantidade == 0:
+        linhas.append("Nenhum servico nessa data.")
+    gravar_relatorio("relatorio_b.txt", linhas)
+
+
+######### servicos de um faxineiro ######################
+def relatorio_c(faxineiros, clientes, servicos):
+    print("")
+    print("Relatorio C: servicos de um faxineiro")
+    cpf_faxineiro = ler_cpf("CPF do faxineiro: ")
+    if cpf_faxineiro not in faxineiros:
+        print("Faxineiro nao encontrado.")
+    else:
+        linhas = []
+        linhas.append("RELATORIO C - Servicos do faxineiro " + faxineiros[cpf_faxineiro][1])
+        linhas.append("CPF do faxineiro: " + cpf_faxineiro)
+        linhas.append("------------------------------------------------------------")
+        quantidade = 0
+        total = 0.0
+        for chave in servicos:
+            servico = servicos[chave]
+            if servico[0] == cpf_faxineiro:
+                nome_cliente = "(nao encontrado)"
+                if servico[1] in clientes:
+                    nome_cliente = clientes[servico[1]][0]
+                linhas.append("Data: " + servico[2] + "   Valor: R$ " + servico[3])
+                linhas.append("  Faxineiro: " + faxineiros[cpf_faxineiro][1] + " (CPF " + servico[0] + ")")
+                linhas.append("  Cliente: " + nome_cliente + " (CPF " + servico[1] + ")")
+                linhas.append("")
+                quantidade += 1
+                total += float(servico[3])
+        if quantidade == 0:
+            linhas.append("Esse faxineiro ainda nao fez nenhum servico.")
+        else:
+            linhas.append("Quantidade de servicos: " + str(quantidade))
+            linhas.append("Valor total: R$ " + str(round(total, 2)))
+        gravar_relatorio("relatorio_c.txt", linhas)
+
+###### SUBMENU RELATORIOS ######################
+def submenu_relatorios(faxineiros, clientes, servicos):
+    opcao = ""
+    while opcao != "4":
+        print("")
+        print("SUBMENU RELATORIOS")
+        print("1. Clientes de um faxineiro entre duas datas")
+        print("2. Servicos de uma data")
+        print("3. Servicos de um faxineiro")
+        print("4. Voltar")
+        opcao = tirar_espacos(input("Opcao: "))
+        if opcao == "1":
+            relatorio_a(faxineiros, clientes, servicos)
+        elif opcao == "2":
+            relatorio_b(faxineiros, clientes, servicos)
+        elif opcao == "3":
+            relatorio_c(faxineiros, clientes, servicos)
+        elif opcao != "4":
+            print("Opcao invalida!")
+
+
+######### MENU ######################
+def menu_principal(faxineiros, clientes, servicos):
+    opcao = ""
+    while opcao != "5":
+        print("")
+        print("MENU PRINCIPAL")
+        print("1. Submenu de Faxineiros")
+        print("2. Submenu de Clientes")
+        print("3. Submenu de Servicos")
+        print("4. Submenu Relatorios")
+        print("5. Sair")
+        opcao = tirar_espacos(input("Opcao: "))
+        if opcao == "1":
+            submenu_faxineiros(faxineiros, servicos)
+        elif opcao == "2":
+            submenu_clientes(clientes, servicos)
+        elif opcao == "3":
+            submenu_servicos(servicos, faxineiros, clientes)
+        elif opcao == "4":
+            submenu_relatorios(faxineiros, clientes, servicos)
+        elif opcao == "5":
+            print("Saindo do sistema. Ate logo!")
+        else:
+            print("Opcao invalida!")
+
+############# MAIN ##############
+def main():
+    faxineiros = carregar_faxineiros()
+    clientes = carregar_clientes()
+    servicos = carregar_servicos()
+    menu_principal(faxineiros, clientes, servicos)
+
+######### PROGRAMA PRINCIPAL #######################
+main()
